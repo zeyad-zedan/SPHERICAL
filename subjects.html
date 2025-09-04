@@ -40,7 +40,8 @@
                         <div class="subject-stats" id="biology-stats">
                             <span class="stat">Loading...</span>
                         </div>
-                        <a href="subject-passages.html?subject=biology" class="btn btn-primary subject-btn">Open</a>
+                        <div class="subject-categories" id="biology-categories"></div>
+                        <a href="subject-passages.html?subject=biology" class="btn btn-primary subject-btn">View All</a>
                     </div>
 
                     <div class="subject-card" data-subject="physics">
@@ -50,7 +51,8 @@
                         <div class="subject-stats" id="physics-stats">
                             <span class="stat">Loading...</span>
                         </div>
-                        <a href="subject-passages.html?subject=physics" class="btn btn-primary subject-btn">Open</a>
+                        <div class="subject-categories" id="physics-categories"></div>
+                        <a href="subject-passages.html?subject=physics" class="btn btn-primary subject-btn">View All</a>
                     </div>
 
                     <div class="subject-card" data-subject="chemistry">
@@ -60,7 +62,8 @@
                         <div class="subject-stats" id="chemistry-stats">
                             <span class="stat">Loading...</span>
                         </div>
-                        <a href="subject-passages.html?subject=chemistry" class="btn btn-primary subject-btn">Open</a>
+                        <div class="subject-categories" id="chemistry-categories"></div>
+                        <a href="subject-passages.html?subject=chemistry" class="btn btn-primary subject-btn">View All</a>
                     </div>
 
                     <div class="subject-card" data-subject="geology">
@@ -70,7 +73,8 @@
                         <div class="subject-stats" id="geology-stats">
                             <span class="stat">Loading...</span>
                         </div>
-                        <a href="subject-passages.html?subject=geology" class="btn btn-primary subject-btn">Open</a>
+                        <div class="subject-categories" id="geology-categories"></div>
+                        <a href="subject-passages.html?subject=geology" class="btn btn-primary subject-btn">View All</a>
                     </div>
 
                     <div class="subject-card" data-subject="english">
@@ -80,7 +84,8 @@
                         <div class="subject-stats" id="english-stats">
                             <span class="stat">Loading...</span>
                         </div>
-                        <a href="subject-passages.html?subject=english" class="btn btn-primary subject-btn">Open</a>
+                        <div class="subject-categories" id="english-categories"></div>
+                        <a href="subject-passages.html?subject=english" class="btn btn-primary subject-btn">View All</a>
                     </div>
                 </div>
             </div>
@@ -103,9 +108,23 @@
                 const subjectPassages = passages.filter(p => p.subject === subject);
                 const count = subjectPassages.length;
                 const statsElement = document.getElementById(`${subject}-stats`);
+                const categoriesElement = document.getElementById(`${subject}-categories`);
                 
                 if (statsElement) {
                     statsElement.innerHTML = `<span class="stat">${count} passage${count !== 1 ? 's' : ''}</span>`;
+                }
+                
+                // Show categories
+                if (categoriesElement) {
+                    const categories = [...new Set(subjectPassages.map(p => p.category).filter(c => c))].sort();
+                    
+                    if (categories.length > 0) {
+                        categoriesElement.innerHTML = categories.slice(0, 3).map(cat => 
+                            `<a href="subject-passages.html?subject=${subject}&category=${encodeURIComponent(cat)}" class="category-tag">${cat}</a>`
+                        ).join('') + (categories.length > 3 ? `<span class="category-tag">+${categories.length - 3} more</span>` : '');
+                    } else {
+                        categoriesElement.innerHTML = '<span class="category-tag" style="opacity: 0.5;">No categories yet</span>';
+                    }
                 }
             });
         }

@@ -6,8 +6,78 @@ const DRAFT_KEY = 'studysphere.draft.v1';
 document.addEventListener('DOMContentLoaded', function() {
     addQuestion(); // Add first question
     setupAutosave();
+    loadCategories();
     loadDraft();
 });
+
+function loadCategories() {
+    const subjectSelect = document.getElementById('subject');
+    const categorySelect = document.getElementById('category');
+    
+    // Load categories when subject changes
+    subjectSelect.addEventListener('change', function() {
+        updateCategoryOptions(this.value);
+    });
+    
+    // Initial load
+    updateCategoryOptions(subjectSelect.value);
+}
+
+function updateCategoryOptions(subject) {
+    const categorySelect = document.getElementById('category');
+    
+    if (!subject) {
+        categorySelect.innerHTML = '<option value="">Select subject first</option>';
+        categorySelect.disabled = true;
+        return;
+    }
+    
+    categorySelect.disabled = false;
+    
+    // Get existing categories for this subject
+    const passages = JSON.parse(localStorage.getItem('studysphere.passages.v1') || '[]');
+    const subjectPassages = passages.filter(p => p.subject === subject);
+    const categories = [...new Set(subjectPassages.map(p => p.category).filter(c => c))].sort();
+    
+    categorySelect.innerHTML = `
+        <option value="">No category (General)</option>
+        ${categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+    `;
+}
+
+function handleCategoryChange() {
+    const newCategoryInput = document.getElementById('new-category');
+    newCategoryInput.classList.add('hidden');
+}
+
+function showNewCategoryInput() {
+    const categorySelect = document.getElementById('category');
+    const newCategoryInput = document.getElementById('new-category');
+    
+    categorySelect.value = '';
+    newCategoryInput.classList.remove('hidden');
+    newCategoryInput.focus();
+}
+
+function handleNewCategory() {
+    const newCategoryInput = document.getElementById('new-category');
+    const categorySelect = document.getElementById('category');
+    const categoryName = newCategoryInput.value.trim();
+    
+    if (categoryName) {
+        // Add new option to select
+        const option = document.createElement('option');
+        option.value = categoryName;
+        option.textContent = categoryName;
+        option.selected = true;
+        categorySelect.appendChild(option);
+        
+        toast.success(`Category "${categoryName}" created`);
+    }
+    
+    newCategoryInput.classList.add('hidden');
+    newCategoryInput.value = '';
+}
 
 function setupAutosave() {
     const form = document.getElementById('passage-form');
@@ -285,6 +355,7 @@ function collectFormData() {
         title: form.querySelector('#title').value,
         source: form.querySelector('#source').value,
         subject: form.querySelector('#subject').value,
+        category: form.querySelector('#category').value,
         difficulty: form.querySelector('#difficulty').value,
         timeLimit: form.querySelector('#timeLimit').value,
         tags: form.querySelector('#tags').value,
@@ -319,6 +390,15 @@ function populateForm(formData) {
     form.querySelector('#title').value = formData.title || '';
     form.querySelector('#source').value = formData.source || '';
     form.querySelector('#subject').value = formData.subject || '';
+    
+    // Update categories and set category
+    if (formData.subject) {
+        updateCategoryOptions(formData.subject);
+        setTimeout(() => {
+            form.querySelector('#category').value = formData.category || '';
+        }, 100);
+    }
+    
     form.querySelector('#difficulty').value = formData.difficulty || '';
     form.querySelector('#timeLimit').value = formData.timeLimit || '';
     form.querySelector('#tags').value = formData.tags || '';
@@ -387,6 +467,7 @@ function savePassage() {
             title: formData.title.trim(),
             source: formData.source.trim(),
             subject: formData.subject,
+            category: formData.category.trim() || null,
             difficulty: formData.difficulty,
             tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
             text: formData.passageText.trim(),

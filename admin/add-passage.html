@@ -57,6 +57,17 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="category" class="form-label">Category</label>
+                            <div class="category-input-group">
+                                <select id="category" class="form-input" onchange="handleCategoryChange()">
+                                    <option value="">Select or create category</option>
+                                </select>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="showNewCategoryInput()">New Category</button>
+                            </div>
+                            <input type="text" id="new-category" class="form-input hidden" placeholder="Enter new category name" onblur="handleNewCategory()">
+                        </div>
+
+                        <div class="form-group">
                             <label for="difficulty" class="form-label">Difficulty *</label>
                             <select id="difficulty" class="form-input" required>
                                 <option value="">Select Difficulty</option>

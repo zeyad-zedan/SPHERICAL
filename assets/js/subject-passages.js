@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup sort functionality
     document.getElementById('sort-select').addEventListener('change', loadPassages);
+    document.getElementById('category-filter').addEventListener('change', loadPassages);
 });
 
 function initializePage() {
@@ -26,7 +27,16 @@ function initializePage() {
 
 function loadPassages() {
     const passages = JSON.parse(localStorage.getItem('studysphere.passages.v1') || '[]');
-    const subjectPassages = passages.filter(p => p.subject === currentSubject);
+    let subjectPassages = passages.filter(p => p.subject === currentSubject);
+    
+    // Update category filter options
+    updateCategoryFilter(subjectPassages);
+    
+    // Apply category filter
+    const selectedCategory = document.getElementById('category-filter').value;
+    if (selectedCategory) {
+        subjectPassages = subjectPassages.filter(p => p.category === selectedCategory);
+    }
     
     // Sort passages
     const sortBy = document.getElementById('sort-select').value;
@@ -34,11 +44,30 @@ function loadPassages() {
     
     // Update count
     const count = subjectPassages.length;
+    const categoryText = selectedCategory ? ` in "${selectedCategory}"` : '';
     document.getElementById('passages-count').textContent = 
-        `${count} passage${count !== 1 ? 's' : ''} found`;
+        `${count} passage${count !== 1 ? 's' : ''} found${categoryText}`;
     
     // Render passages
     renderPassages(subjectPassages);
+}
+
+function updateCategoryFilter(passages) {
+    const categoryFilter = document.getElementById('category-filter');
+    const currentValue = categoryFilter.value;
+    
+    // Get unique categories
+    const categories = [...new Set(passages.map(p => p.category).filter(c => c))].sort();
+    
+    categoryFilter.innerHTML = `
+        <option value="">All Categories</option>
+        ${categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+    `;
+    
+    // Restore selection if it still exists
+    if (categories.includes(currentValue)) {
+        categoryFilter.value = currentValue;
+    }
 }
 
 function sortPassages(passages, sortBy) {
@@ -55,6 +84,13 @@ function sortPassages(passages, sortBy) {
         case 'difficulty':
             const difficultyOrder = { 'Easy': 0, 'Medium': 1, 'Hard': 2 };
             passages.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
+            break;
+        case 'category':
+            passages.sort((a, b) => {
+                const catA = a.category || 'General';
+                const catB = b.category || 'General';
+                return catA.localeCompare(catB);
+            });
             break;
     }
 }
@@ -77,6 +113,7 @@ function renderPassages(passages) {
     container.innerHTML = passages.map(passage => {
         const date = new Date(passage.createdAt).toLocaleDateString();
         const questionCount = passage.questions ? passage.questions.length : 0;
+        const categoryDisplay = passage.category ? `${passage.category} • ` : '';
         
         return `
             <div class="passage-card">
@@ -84,8 +121,9 @@ function renderPassages(passages) {
                 <div class="passage-meta">
                     <span class="difficulty-badge ${passage.difficulty.toLowerCase()}">${passage.difficulty}</span>
                     <span class="time-badge">${passage.timeLimit} min</span>
+                    ${passage.category ? `<span class="subject-badge">${passage.category}</span>` : ''}
                 </div>
-                <p class="passage-date">${date} • ${questionCount} questions</p>
+                <p class="passage-date">${categoryDisplay}${date} • ${questionCount} questions</p>
                 <div class="passage-actions">
                     <button class="btn btn-secondary btn-sm" onclick="viewPassage('${passage.id}')">View</button>
                     <button class="btn btn-primary btn-sm" onclick="startQuiz('${passage.id}')">Start</button>

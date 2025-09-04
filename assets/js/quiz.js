@@ -43,6 +43,16 @@ function loadQuiz(passageId) {
     document.getElementById('quiz-difficulty').textContent = currentPassage.difficulty;
     document.getElementById('quiz-difficulty').className = `difficulty-badge ${currentPassage.difficulty.toLowerCase()}`;
     document.getElementById('quiz-subject').textContent = currentPassage.subject.charAt(0).toUpperCase() + currentPassage.subject.slice(1);
+    
+    // Show category if it exists
+    const categoryElement = document.getElementById('quiz-category');
+    if (currentPassage.category) {
+        categoryElement.textContent = currentPassage.category;
+        categoryElement.style.display = 'inline-block';
+    } else {
+        categoryElement.style.display = 'none';
+    }
+    
     document.getElementById('passage-text').textContent = currentPassage.text;
     document.getElementById('questions-count').textContent = `${currentPassage.questions.length} questions`;
     
